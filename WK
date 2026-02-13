@@ -1,0 +1,93 @@
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+repeat task.wait() until player
+
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+local normalSpeed = 16
+local currentSpeed = 40
+local speedEnabled = false
+local headLockEnabled = false
+
+if PlayerGui:FindFirstChild("SpeedGui") then
+    PlayerGui.SpeedGui:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpeedGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 240, 0, 210)
+frame.Position = UDim2.new(0.5, -120, 0.5, -105)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+
+local speedButton = Instance.new("TextButton")
+speedButton.Size = UDim2.new(0, 200, 0, 40)
+speedButton.Position = UDim2.new(0.5, -100, 0, 20)
+speedButton.Text = "Speed: OFF"
+speedButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
+speedButton.TextColor3 = Color3.new(1,1,1)
+speedButton.Parent = frame
+
+local headButton = Instance.new("TextButton")
+headButton.Size = UDim2.new(0, 200, 0, 40)
+headButton.Position = UDim2.new(0.5, -100, 0, 70)
+headButton.Text = "Head Lock: OFF"
+headButton.BackgroundColor3 = Color3.fromRGB(170,0,0)
+headButton.TextColor3 = Color3.new(1,1,1)
+headButton.Parent = frame
+
+local function applySpeed()
+    local char = player.Character
+    if char and char:FindFirstChild("Humanoid") then
+        char.Humanoid.WalkSpeed = speedEnabled and currentSpeed or normalSpeed
+    end
+end
+
+local function applyHeadLock()
+    local char = player.Character
+    if char and char:FindFirstChild("Humanoid") then
+        char.Humanoid.AutoRotate = not headLockEnabled
+    end
+end
+
+speedButton.MouseButton1Click:Connect(function()
+    speedEnabled = not speedEnabled
+    speedButton.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
+    speedButton.BackgroundColor3 = speedEnabled and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
+    applySpeed()
+end)
+
+headButton.MouseButton1Click:Connect(function()
+    headLockEnabled = not headLockEnabled
+    headButton.Text = headLockEnabled and "Head Lock: ON" or "Head Lock: OFF"
+    headButton.BackgroundColor3 = headLockEnabled and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
+    applyHeadLock()
+end)
+
+RunService.RenderStepped:Connect(function()
+    if speedEnabled then
+        applySpeed()
+    end
+end)
+
+if player.Character then
+    applySpeed()
+    applyHeadLock()
+end
+
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    applySpeed()
+    applyHeadLock()
+end)

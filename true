@@ -1,0 +1,75 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local speed = 60
+local bodyVelocity
+local bodyGyro
+
+-- UI
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+screenGui.ResetOnSpawn = false
+
+local toggleButton = Instance.new("TextButton", screenGui)
+toggleButton.Size = UDim2.new(0,120,0,50)
+toggleButton.Position = UDim2.new(0.05,0,0.7,0)
+toggleButton.Text = "FLY: OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(200,50,50)
+toggleButton.TextScaled = true
+
+local speedUp = Instance.new("TextButton", screenGui)
+speedUp.Size = UDim2.new(0,60,0,50)
+speedUp.Position = UDim2.new(0.05,130,0.7,0)
+speedUp.Text = "+"
+speedUp.TextScaled = true
+
+local speedDown = Instance.new("TextButton", screenGui)
+speedDown.Size = UDim2.new(0,60,0,50)
+speedDown.Position = UDim2.new(0.05,200,0.7,0)
+speedDown.Text = "-"
+speedDown.TextScaled = true
+
+local speedLabel = Instance.new("TextLabel", screenGui)
+speedLabel.Size = UDim2.new(0,180,0,40)
+speedLabel.Position = UDim2.new(0.05,0,0.63,0)
+speedLabel.Text = "Speed: "..speed
+speedLabel.BackgroundTransparency = 0.3
+speedLabel.TextScaled = true
+
+local function startFly()
+	flying = true
+	
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
+	bodyVelocity.Parent = hrp
+	
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(1e5,1e5,1e5)
+	bodyGyro.Parent = hrp
+	
+	humanoid.PlatformStand = true
+end
+
+local function stopFly()
+	flying = false
+	if bodyVelocity then bodyVelocity:Destroy() end
+	if bodyGyro then bodyGyro:Destroy() end
+	humanoid.PlatformStand = false
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+	if flying then
+		stopFly()
+		toggleButton.Text = "FLY: OFF"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(200,50,50)
+	else
+		startFly()
+		toggleButton.Text = "FLY: ON"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(50,200,50)
+	end

@@ -1,0 +1,46 @@
+local Players = game:GetService("Players")
+
+local ATTACK_RADIUS = 20
+local DAMAGE = 25
+
+local function getNearbyMonsters(position)
+	local monsters = {}
+	
+	for _, model in pairs(workspace:GetChildren()) do
+		if model:FindFirstChild("Humanoid") 
+		and model:FindFirstChild("HumanoidRootPart")
+		and not Players:GetPlayerFromCharacter(model) then
+			
+			local distance = (model.HumanoidRootPart.Position - position).Magnitude
+			if distance <= ATTACK_RADIUS then
+				table.insert(monsters, model)
+			end
+		end
+	end
+	
+	return monsters
+end
+
+Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(character)
+		
+		character.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") then
+				
+				local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+				
+				while child.Parent == character do
+					local monsters = getNearbyMonsters(humanoidRootPart.Position)
+					
+					for _, monster in pairs(monsters) do
+						monster.Humanoid:TakeDamage(DAMAGE)
+					end
+					
+					task.wait(0.5)
+				end
+				
+			end
+		end)
+		
+	end)
+end)

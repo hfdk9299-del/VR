@@ -1,0 +1,96 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local remote = ReplicatedStorage:WaitForChild("AutoDamageEvent")
+
+local function getCharacter()
+	return player.Character or player.CharacterAdded:Wait()
+end
+
+local character = getCharacter()
+local humanoid = character:WaitForChild("Humanoid")
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local flying = false
+local auto = false
+local speed = 60
+local bodyVelocity
+local bodyGyro
+
+local flyBtn = Instance.new("TextButton")
+flyBtn.Size = UDim2.new(0,130,0,50)
+flyBtn.Position = UDim2.new(0.05,0,0.75,0)
+flyBtn.Text = "FLY OFF"
+flyBtn.TextScaled = true
+flyBtn.Parent = screenGui
+
+local autoBtn = Instance.new("TextButton")
+autoBtn.Size = UDim2.new(0,130,0,50)
+autoBtn.Position = UDim2.new(0.05,140,0.75,0)
+autoBtn.Text = "AUTO OFF"
+autoBtn.TextScaled = true
+autoBtn.Parent = screenGui
+
+local function startFly()
+	flying = true
+	
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
+	bodyVelocity.Parent = hrp
+	
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(1e5,1e5,1e5)
+	bodyGyro.Parent = hrp
+	
+	humanoid.PlatformStand = true
+	flyBtn.Text = "FLY ON"
+end
+
+local function stopFly()
+	flying = false
+	
+	if bodyVelocity then bodyVelocity:Destroy() end
+	if bodyGyro then bodyGyro:Destroy() end
+	
+	humanoid.PlatformStand = false
+	flyBtn.Text = "FLY OFF"
+end
+
+flyBtn.MouseButton1Click:Connect(function()
+	if flying then
+		stopFly()
+	else
+		startFly()
+	end
+end)
+
+autoBtn.MouseButton1Click:Connect(function()
+	auto = not auto
+	if auto then
+		autoBtn.Text = "AUTO ON"
+	else
+		autoBtn.Text = "AUTO OFF"
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if flying and bodyVelocity and bodyGyro then
+		bodyVelocity.Velocity = workspace.CurrentCamera.CFrame.LookVector * speed
+		bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+	end
+end)
+
+task.spawn(function()
+	while true do
+		if auto then
+			remote:FireServer()
+		end
+		task.wait(0.5)
+	end
+end)
